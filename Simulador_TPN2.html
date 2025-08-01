@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Simulador de Peine - Rumbo e Inclinación</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 20px;
+      background-color: white;
+    }
+    canvas {
+      background-color: white;
+      border-radius: 50%;
+      border: 2px solid #000;
+      margin-top: 20px;
+    }
+    input, select {
+      margin: 5px;
+      width: 80px;
+      text-align: center;
+    }
+    label {
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Simulador de símbolo geológico ("peine")</h2>
+  <p>Ingresá los valores:</p>
+
+  <label for="rumbo">Rumbo (°):</label>
+  <input type="number" id="rumbo" min="0" max="360" value="0" />
+
+  <label for="inclinacion">Inclinación (°):</label>
+  <input type="number" id="inclinacion" min="0" max="90" value="45" />
+
+  <label for="cuadrante">Cuadrante:</label>
+  <select id="cuadrante">
+    <option value="+90">+90° (a la derecha)</option>
+    <option value="-90">-90° (a la izquierda)</option>
+  </select>
+
+  <br />
+  <button onclick="dibujarSimbolo()">Dibujar símbolo</button>
+
+  <canvas id="canvas" width="400" height="400"></canvas>
+
+  <script>
+    function gradosARadianes(grados) {
+      return (grados - 90) * Math.PI / 180;
+    }
+
+    function dibujarSimbolo() {
+      const rumbo = parseFloat(document.getElementById('rumbo').value);
+      const inclinacion = parseFloat(document.getElementById('inclinacion').value);
+      const delta = parseInt(document.getElementById('cuadrante').value);
+
+      let dirInc = (rumbo + delta + 360) % 360;
+
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const radio = 150;
+
+      // Dibujar círculo principal
+      ctx.beginPath();
+      ctx.arc(cx, cy, radio, 0, 2 * Math.PI);
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Dibujar marcas cardinales
+      const angulosCardinales = [0, 90, 180, 270];
+      ctx.font = '12px Arial';
+      ctx.fillStyle = 'black';
+      angulosCardinales.forEach(ang => {
+        const rad = gradosARadianes(ang);
+        const xt = cx + Math.cos(rad) * (radio + 15);
+        const yt = cy + Math.sin(rad) * (radio + 15);
+        ctx.fillText(ang + '°', xt - 10, yt + 4);
+      });
+
+      // Dibujar línea de rumbo
+      const rRad = gradosARadianes(rumbo);
+      const xR1 = cx + Math.cos(rRad) * radio;
+      const yR1 = cy + Math.sin(rRad) * radio;
+      const xR2 = cx - Math.cos(rRad) * radio;
+      const yR2 = cy - Math.sin(rRad) * radio;
+
+      ctx.strokeStyle = 'blue';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(xR1, yR1);
+      ctx.lineTo(xR2, yR2);
+      ctx.stroke();
+
+      // Dibujar línea de dirección de inclinación
+      const incRad = gradosARadianes(dirInc);
+      const xI = cx + Math.cos(incRad) * (radio * 0.3);
+      const yI = cy + Math.sin(incRad) * (radio * 0.3);
+
+      ctx.strokeStyle = 'red';
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(xI, yI);
+      ctx.stroke();
+
+      // Mostrar inclinación
+      ctx.fillStyle = 'red';
+      ctx.font = '14px Arial';
+      ctx.fillText(`${inclinacion}°`, xI + 5, yI + 5);
+    }
+  </script>
+</body>
+</html>
